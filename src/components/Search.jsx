@@ -1,28 +1,27 @@
+import React, { useContext, useState } from 'react';
 import {
   collection,
-  doc,
-  getDoc,
-  getDocs,
   query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
   where,
+  getDocs,
+  setDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  getDoc,
 } from 'firebase/firestore';
-import React, { useContext } from 'react';
-import { useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
 import { db } from '../firebase';
-
-export const Search = () => {
-  const [userName, setUserName] = useState('');
+import { AuthContext } from '../context/AuthContext';
+const Search = () => {
+  const [username, setUsername] = useState('');
   const [user, setUser] = useState(null);
   const [err, setErr] = useState(false);
 
   const { currentUser } = useContext(AuthContext);
 
   const handleSearch = async () => {
-    const q = query(collection(db, 'users'), where('displayName', '==', userName));
+    const q = query(collection(db, 'users'), where('displayName', '==', username));
+
     try {
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
@@ -34,54 +33,56 @@ export const Search = () => {
   };
 
   const handleKey = (e) => {
-    e.code = 'Enter' && handleSearch();
+    e.code === 'Enter' && handleSearch();
   };
 
   const handleSelect = async () => {
     //check whether the group(chats in firestore) exists, if not create
-    const combineId =
+    const combinedId =
       currentUser.uid > user.uid ? currentUser.uid + user.uid : user.uid + currentUser.uid;
     try {
-      const res = await getDoc(doc(db, 'chats', combineId));
+      const res = await getDoc(doc(db, 'chats', combinedId));
+
       if (!res.exists()) {
         //create a chat in chats collection
-        await setDoc(doc(db, 'chats', combineId), { messages: [] });
+        await setDoc(doc(db, 'chats', combinedId), { messages: [] });
 
-        //creare user chats
+        //create user chats
         await updateDoc(doc(db, 'userChats', currentUser.uid), {
-          [combineId + '.userInfo']: {
+          [combinedId + '.userInfo']: {
             uid: user.uid,
             displayName: user.displayName,
             photoURL: user.photoURL,
           },
-          [combineId + '.date']: serverTimestamp(),
+          [combinedId + '.date']: serverTimestamp(),
         });
+
         await updateDoc(doc(db, 'userChats', user.uid), {
-          [combineId + '.userInfo']: {
+          [combinedId + '.userInfo']: {
             uid: currentUser.uid,
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
           },
-          [combineId + '.date']: serverTimestamp(),
+          [combinedId + '.date']: serverTimestamp(),
         });
       }
-    } catch (error) {}
-    //create user chats
+    } catch (err) {}
+
     setUser(null);
-    setUserName('');
+    setUsername('');
   };
   return (
     <div className="search">
       <div className="searchForm">
         <input
           type="text"
-          placeholder="find a user"
+          placeholder="Find a user"
           onKeyDown={handleKey}
-          onChange={(e) => setUserName(e.target.value)}
-          value={userName}
+          onChange={(e) => setUsername(e.target.value)}
+          value={username}
         />
       </div>
-      {err && <span>User not found</span>}
+      {err && <span>User not found!</span>}
       {user && (
         <div className="userChat" onClick={handleSelect}>
           <img src={user.photoURL} alt="" />
@@ -93,3 +94,5 @@ export const Search = () => {
     </div>
   );
 };
+
+export default Search;

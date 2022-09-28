@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, storage, db } from '../firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc } from 'firebase/firestore';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
-export const Login = () => {
-  const [error, setError] = useState(false);
+const Login = () => {
+  const [err, setErr] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,19 +16,19 @@ export const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/');
     } catch (err) {
-      setError(true);
+      setErr(true);
     }
   };
   return (
-    <div className="form__container">
-      <div className="form__wrapper">
-        <span className="logo">Chat</span>
+    <div className="formContainer">
+      <div className="formWrapper">
+        <span className="logo">Lama Chat</span>
         <span className="title">Login</span>
         <form onSubmit={handleSubmit}>
           <input type="email" placeholder="email" />
           <input type="password" placeholder="password" />
-          <button>Sign In</button>
-          {error && <span>Something went wrong</span>}
+          <button>Sign in</button>
+          {err && <span>Something went wrong</span>}
         </form>
         <p>
           You don't have an account? <Link to="/register">Register</Link>
@@ -40,3 +37,5 @@ export const Login = () => {
     </div>
   );
 };
+
+export default Login;
