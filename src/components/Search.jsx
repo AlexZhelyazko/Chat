@@ -1,4 +1,14 @@
-import { collection, getDocs, query, setDoc, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import React, { useContext } from 'react';
 import { useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -32,15 +42,33 @@ export const Search = () => {
     const combineId =
       currentUser.uid > user.uid ? currentUser.uid + user.uid : user.uid + currentUser.uid;
     try {
-      const res = await getDocs(db, 'chats', combineId);
+      const res = await getDoc(doc(db, 'chats', combineId));
       if (!res.exists()) {
         //create a chat in chats collection
-        await setDoc(doc, (db, 'chats', combineId), { messages: [] });
+        await setDoc(doc(db, 'chats', combineId), { messages: [] });
 
         //creare user chats
+        await updateDoc(doc(db, 'userChats', currentUser.uid), {
+          [combineId + '.userInfo']: {
+            uid: user.uid,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+          [combineId + '.date']: serverTimestamp(),
+        });
+        await updateDoc(doc(db, 'userChats', user.uid), {
+          [combineId + '.userInfo']: {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+          },
+          [combineId + '.date']: serverTimestamp(),
+        });
       }
     } catch (error) {}
     //create user chats
+    setUser(null);
+    setUserName('');
   };
   return (
     <div className="search">
@@ -50,6 +78,7 @@ export const Search = () => {
           placeholder="find a user"
           onKeyDown={handleKey}
           onChange={(e) => setUserName(e.target.value)}
+          value={userName}
         />
       </div>
       {err && <span>User not found</span>}
