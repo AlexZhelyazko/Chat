@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, storage, db } from '../firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export const Login = () => {
@@ -17,7 +17,7 @@ export const Login = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError(true);
     }
@@ -33,7 +33,9 @@ export const Login = () => {
           <button>Sign In</button>
           {error && <span>Something went wrong</span>}
         </form>
-        <p>You don't have an account? Register</p>
+        <p>
+          You don't have an account? <Link to="/register">Register</Link>
+        </p>
       </div>
     </div>
   );
