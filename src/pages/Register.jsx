@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Add from '../img/addAvatar.png';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, storage } from '../firebase';
+import { auth, storage, db } from '../firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
 
 export const Register = () => {
   const [error, setError] = useState(false);
@@ -29,6 +30,13 @@ export const Register = () => {
               displayName,
               photoURL: downloadURL,
             });
+            await setDoc((db, 'users', res.user.uid), {
+              uid: res.user.uid,
+              displayName,
+              email,
+              photoURL: downloadURL,
+            });
+            await setDoc(doc(db, 'userChats', res.user.uid), {});
           });
         },
       );
